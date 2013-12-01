@@ -3,6 +3,7 @@ package com.prashant.adesara.socket.server;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -127,20 +128,26 @@ public class ServerBoard extends JFrame {
     }
 
     private void processMessage(String message) {
-        //System.out.println("Msg Recieved");
+        System.out.println("Msg Recieved");
         messagesArea.append("\n" + message);
-        String subSX = "0";
-        String subSY = "0";
-        double moveX = 0d;
-        double moveY = 0d;
         if (message.contains("move_")) {
-            subSX = message.substring(message.indexOf("x") + 1, message.indexOf("y"));
-            moveX = Double.parseDouble(subSX);
-            subSY = message.substring(message.indexOf("y") + 1, message.length());
-            moveY = Double.parseDouble(subSY);
-
+            String subSX = message.substring(message.indexOf("x") + 1, message.indexOf("y"));
+            double moveX = Double.parseDouble(subSX);
+            String subSY = message.substring(message.indexOf("y") + 1, message.length());
+            double moveY = Double.parseDouble(subSY);
             r.mouseMove(getXOffset(moveX), getYOffset(moveY));
-
+        } else if (message.contains("clck_d_"))  {
+            if(message.contains("lc")){
+                r.mousePress(InputEvent.BUTTON1_MASK);
+            } else {
+                r.mousePress(InputEvent.BUTTON2_MASK);
+            }
+        } else if (message.contains("clck_u_"))  {
+            if(message.contains("lc")){
+                r.mouseRelease(InputEvent.BUTTON1_MASK);
+            } else {
+                r.mouseRelease(InputEvent.BUTTON2_MASK);
+            }
         }
     }
 
