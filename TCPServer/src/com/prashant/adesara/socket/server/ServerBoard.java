@@ -1,5 +1,6 @@
 package com.prashant.adesara.socket.server;
 
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -17,12 +18,19 @@ import javax.swing.JTextField;
  * */
 public class ServerBoard extends JFrame
 {
+
+    private static final float MAX_X_VALUE = 7f;
+    private static final float MAX_Y_VALUE = 5f;
+
 	private static final long serialVersionUID = 1L;
 	private JTextArea messagesArea;
 	private JButton sendButton;
 	private JTextField message;
 	private JButton startServer;
 	private SocketMainServer mServer;
+    Robot r;
+    double width;
+    double height;
 	
 	public ServerBoard()
 	{
@@ -64,8 +72,14 @@ public class ServerBoard extends JFrame
 				message.setText("");
 			}
 		});
+        try {
+            r = new Robot();
+            initScreen();
+        } catch (AWTException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
 
-		startServer = new JButton("Start");
+        startServer = new JButton("Start");
 		startServer.addActionListener(new ActionListener()
 		{
 			@Override
@@ -73,11 +87,16 @@ public class ServerBoard extends JFrame
 			{
 				// disable the start button
 				startServer.setEnabled(false);
-				messagesArea.append("Server Started, now start Android Client");
+
+
+                messagesArea.append("Server Started, now start Android Client");
 				// creates the object OnMessageReceived asked by the DispatcherServer
 				// constructor
 				mServer = new SocketMainServer(new SocketMainServer.OnMessageReceived()
 				{
+
+
+
 					@Override
 					// this method declared in the interface from DispatcherServer
 					// class is implemented here
@@ -86,9 +105,8 @@ public class ServerBoard extends JFrame
 					// DispatcherServer class (at while)
 					public void messageReceived(String message)
 					{
-						System.out.println("Msg Recieved");
-						messagesArea.append("\n" + message);
-					}
+                        processMessage(message);
+                    }
 				});
 				mServer.start();
 
@@ -117,4 +135,42 @@ public class ServerBoard extends JFrame
 		setSize(300, 170);
 		setVisible(true);
 	}
+
+    private void processMessage(String message)  {
+        //System.out.println("Msg Recieved");
+        messagesArea.append("\n" + message);
+        String subSX ="0" ;
+        String subSY ="0" ;
+        double moveX=0d;
+        double moveY=0d;
+
+            subSX = message.substring(message.indexOf("x")+1, message.indexOf("y"));
+            moveX = Double.parseDouble(subSX);
+            subSY = message.substring(message.indexOf("y")+1, message.length());
+            moveY = Double.parseDouble(subSY);
+
+
+
+
+        try{
+        r.mouseMove(getXOffset(moveX),getYOffset(moveY));
+        }catch (NullPointerException e){
+
+        }
+    }
+
+    private void initScreen(){
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        width = screenSize.getWidth()/2d;
+        height = screenSize.getHeight()/2d;
+    }
+
+    private int getXOffset(double value){
+        int result =  (int) (width - width*value/MAX_X_VALUE);
+        //System.out.println("x = "+result);
+        return result;
+    }
+    private int getYOffset(double value){
+        return (int) (height - height*value/MAX_Y_VALUE);
+    }
 }
