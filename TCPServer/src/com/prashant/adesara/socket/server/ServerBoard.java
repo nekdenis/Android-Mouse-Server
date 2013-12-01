@@ -14,64 +14,59 @@ import javax.swing.JTextField;
 
 /**
  * @author Prashant Adesara
- * Handle UI part with sending messages to clients
- * */
-public class ServerBoard extends JFrame
-{
+ *         Handle UI part with sending messages to clients
+ */
+public class ServerBoard extends JFrame {
 
     private static final float MAX_X_VALUE = 7f;
     private static final float MAX_Y_VALUE = 5f;
 
-	private static final long serialVersionUID = 1L;
-	private JTextArea messagesArea;
-	private JButton sendButton;
-	private JTextField message;
-	private JButton startServer;
-	private SocketMainServer mServer;
+    private static final long serialVersionUID = 1L;
+    private JTextArea messagesArea;
+    private JButton sendButton;
+    private JTextField message;
+    private JButton startServer;
+    private SocketMainServer mServer;
     Robot r;
     double width;
     double height;
-	
-	public ServerBoard()
-	{
 
-		super("ServerBoard - Prashant Adesara");
+    public ServerBoard() {
 
-		JPanel panelFields = new JPanel();
-		panelFields.setLayout(new BoxLayout(panelFields, BoxLayout.X_AXIS));
+        super("ServerBoard - Prashant Adesara");
 
-		JPanel panelFields2 = new JPanel();
-		panelFields2.setLayout(new BoxLayout(panelFields2, BoxLayout.X_AXIS));
+        JPanel panelFields = new JPanel();
+        panelFields.setLayout(new BoxLayout(panelFields, BoxLayout.X_AXIS));
 
-		// here we will have the text messages screen
-		messagesArea = new JTextArea();
-		messagesArea.setColumns(30);
-		messagesArea.setRows(10);
-		messagesArea.setEditable(false);
-		
-		sendButton = new JButton("Send");
-		sendButton.addActionListener(new ActionListener()
-		{
-			@Override
-			public void actionPerformed(ActionEvent e)
-			{
-				// get the message from the text view
-				String messageText = message.getText();
-				if(messageText.toString().trim().equals(""))
-				{
-					message.setText("");
-					message.requestFocus();
-					return;
-				}
-				// add message to the message area
-				messageText = "Server: " + messageText;
-				messagesArea.append("\n"+messageText);
-				// send the message to the client
-				mServer.sendMessage(messageText);
-				// clear text
-				message.setText("");
-			}
-		});
+        JPanel panelFields2 = new JPanel();
+        panelFields2.setLayout(new BoxLayout(panelFields2, BoxLayout.X_AXIS));
+
+        // here we will have the text messages screen
+        messagesArea = new JTextArea();
+        messagesArea.setColumns(30);
+        messagesArea.setRows(10);
+        messagesArea.setEditable(false);
+
+        sendButton = new JButton("Send");
+        sendButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // get the message from the text view
+                String messageText = message.getText();
+                if (messageText.toString().trim().equals("")) {
+                    message.setText("");
+                    message.requestFocus();
+                    return;
+                }
+                // add message to the message area
+                messageText = "Server: " + messageText;
+                messagesArea.append("\n" + messageText);
+                // send the message to the client
+                mServer.sendMessage(messageText);
+                // clear text
+                message.setText("");
+            }
+        });
         try {
             r = new Robot();
             initScreen();
@@ -80,97 +75,88 @@ public class ServerBoard extends JFrame
         }
 
         startServer = new JButton("Start");
-		startServer.addActionListener(new ActionListener()
-		{
-			@Override
-			public void actionPerformed(ActionEvent e)
-			{
-				// disable the start button
-				startServer.setEnabled(false);
+        startServer.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // disable the start button
+                startServer.setEnabled(false);
 
 
                 messagesArea.append("Server Started, now start Android Client");
-				// creates the object OnMessageReceived asked by the DispatcherServer
-				// constructor
-				mServer = new SocketMainServer(new SocketMainServer.OnMessageReceived()
-				{
+                // creates the object OnMessageReceived asked by the DispatcherServer
+                // constructor
+                mServer = new SocketMainServer(new SocketMainServer.OnMessageReceived() {
 
 
-
-					@Override
-					// this method declared in the interface from DispatcherServer
-					// class is implemented here
-					// this method is actually a callback method, because it
-					// will run every time when it will be called from
-					// DispatcherServer class (at while)
-					public void messageReceived(String message)
-					{
+                    @Override
+                    // this method declared in the interface from DispatcherServer
+                    // class is implemented here
+                    // this method is actually a callback method, because it
+                    // will run every time when it will be called from
+                    // DispatcherServer class (at while)
+                    public void messageReceived(String message) {
                         processMessage(message);
                     }
-				});
-				mServer.start();
+                });
+                mServer.start();
 
-			}
-		});
+            }
+        });
 
-		// the box where the user enters the text (EditText is called in
-		// Android)
-		message = new JTextField();
-		message.setSize(200, 20);
-		message.setScrollOffset(1);
+        // the box where the user enters the text (EditText is called in
+        // Android)
+        message = new JTextField();
+        message.setSize(200, 20);
+        message.setScrollOffset(1);
 
-		// add the buttons and the text fields to the panel
-		JScrollPane sp = new JScrollPane(messagesArea);
-		panelFields.add(sp);
-		panelFields.add(startServer);
+        // add the buttons and the text fields to the panel
+        JScrollPane sp = new JScrollPane(messagesArea);
+        panelFields.add(sp);
+        panelFields.add(startServer);
 
-		panelFields2.add(message);
-		panelFields2.add(sendButton);
+        panelFields2.add(message);
+        panelFields2.add(sendButton);
 
-		getContentPane().add(panelFields);
-		getContentPane().add(panelFields2);
+        getContentPane().add(panelFields);
+        getContentPane().add(panelFields2);
 
-		getContentPane().setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
+        getContentPane().setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
 
-		setSize(300, 170);
-		setVisible(true);
-	}
+        setSize(300, 170);
+        setVisible(true);
+    }
 
-    private void processMessage(String message)  {
+    private void processMessage(String message) {
         //System.out.println("Msg Recieved");
         messagesArea.append("\n" + message);
-        String subSX ="0" ;
-        String subSY ="0" ;
-        double moveX=0d;
-        double moveY=0d;
-
-            subSX = message.substring(message.indexOf("x")+1, message.indexOf("y"));
+        String subSX = "0";
+        String subSY = "0";
+        double moveX = 0d;
+        double moveY = 0d;
+        if (message.contains("move_")) {
+            subSX = message.substring(message.indexOf("x") + 1, message.indexOf("y"));
             moveX = Double.parseDouble(subSX);
-            subSY = message.substring(message.indexOf("y")+1, message.length());
+            subSY = message.substring(message.indexOf("y") + 1, message.length());
             moveY = Double.parseDouble(subSY);
 
-
-
-
-        try{
-        r.mouseMove(getXOffset(moveX),getYOffset(moveY));
-        }catch (NullPointerException e){
+            r.mouseMove(getXOffset(moveX), getYOffset(moveY));
 
         }
     }
 
-    private void initScreen(){
+    private void initScreen() {
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        width = screenSize.getWidth()/2d;
-        height = screenSize.getHeight()/2d;
+        width = screenSize.getWidth() / 2d;
+        height = screenSize.getHeight() / 2d;
     }
 
-    private int getXOffset(double value){
-        int result =  (int) (width - width*value/MAX_X_VALUE);
+    private int getXOffset(double value) {
+        int result = (int) (width - width * value / MAX_X_VALUE);
         //System.out.println("x = "+result);
         return result;
     }
-    private int getYOffset(double value){
-        return (int) (height - height*value/MAX_Y_VALUE);
+
+    private int getYOffset(double value) {
+        return (int) (height - height * value / MAX_Y_VALUE);
     }
 }
