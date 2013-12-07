@@ -24,6 +24,10 @@ public class SocketMainServer extends Thread
 	private boolean running = false;
 	private PrintWriter mOut;
 	private OnMessageReceived messageListener;
+	private OnConnectionChangeListener connectionListener;
+
+    public static final String MESSAGE_START = "Server_hi!";
+    public static final String MESSAGE_END = "Server_bye!";
 	
 	public static void main(String[] args)
 	{
@@ -40,9 +44,10 @@ public class SocketMainServer extends Thread
 	 * @author Prashant Adesara
 	 * @param messageListener listens for the messages
 	 */
-	public SocketMainServer(OnMessageReceived messageListener)
+	public SocketMainServer(OnMessageReceived messageListener, OnConnectionChangeListener connectionListener)
 	{
 		this.messageListener = messageListener;
+        this.connectionListener = connectionListener;
 	}
 
 	/**
@@ -103,11 +108,9 @@ public class SocketMainServer extends Thread
 				while (running)
 				{
 					String message = in.readLine();
-					if (message != null && messageListener != null)
-					{
-						// call the method messageReceived from ServerBoard class
-						messageListener.messageReceived(message);
-					}
+					if (message != null){
+                        processReceivedMessage(message);
+                    }
 				}
 			}
 			catch (Exception e)
@@ -129,7 +132,23 @@ public class SocketMainServer extends Thread
 
 	}
 
-	/**
+    private void processReceivedMessage(String message) {
+        if(message.contains(MESSAGE_START)){
+            System.out.println("Received start message");
+            if(connectionListener!=null){
+                connectionListener.connected();
+            }
+        } else if(message.contains(MESSAGE_END)){
+            System.out.println("Received end message");
+            if(connectionListener!=null){
+                connectionListener.disconnected();
+            }
+        } else if(messageListener != null){
+            messageListener.messageReceived(message);
+        }
+    }
+
+    /**
 	 * Declare the interface. The method messageReceived(String message) will
 	 * @author Prashant Adesara 
 	 * must be implemented in the ServerBoard
@@ -139,5 +158,11 @@ public class SocketMainServer extends Thread
 	{
 		public void messageReceived(String message);
 	}
+
+    public interface OnConnectionChangeListener
+    {
+        public void connected();
+        public void disconnected();
+    }
 
 }

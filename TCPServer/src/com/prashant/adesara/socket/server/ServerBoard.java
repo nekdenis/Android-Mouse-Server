@@ -4,6 +4,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
+import java.io.IOException;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -24,10 +25,10 @@ public class ServerBoard extends JFrame {
 
     private static final long serialVersionUID = 1L;
     private JTextArea messagesArea;
-    private JButton sendButton;
     private JTextField message;
     private JButton startServer;
     private SocketMainServer mServer;
+    private SocketBroadcastServer mBroadcastServer;
     Robot r;
     double width;
     double height;
@@ -48,26 +49,6 @@ public class ServerBoard extends JFrame {
         messagesArea.setRows(10);
         messagesArea.setEditable(false);
 
-        sendButton = new JButton("Send");
-        sendButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // get the message from the text view
-                String messageText = message.getText();
-                if (messageText.toString().trim().equals("")) {
-                    message.setText("");
-                    message.requestFocus();
-                    return;
-                }
-                // add message to the message area
-                messageText = "Server: " + messageText;
-                messagesArea.append("\n" + messageText);
-                // send the message to the client
-                mServer.sendMessage(messageText);
-                // clear text
-                message.setText("");
-            }
-        });
         try {
             r = new Robot();
             initScreen();
@@ -86,21 +67,39 @@ public class ServerBoard extends JFrame {
                 messagesArea.append("Server Started, now start Android Client");
                 // creates the object OnMessageReceived asked by the DispatcherServer
                 // constructor
-                mServer = new SocketMainServer(new SocketMainServer.OnMessageReceived() {
+
+                try {
+                    mBroadcastServer = new SocketBroadcastServer("SocketBroadcastServer");
+
+                    mBroadcastServer.start();
+                    mServer = new SocketMainServer(new SocketMainServer.OnMessageReceived() {
 
 
-                    @Override
-                    // this method declared in the interface from DispatcherServer
-                    // class is implemented here
-                    // this method is actually a callback method, because it
-                    // will run every time when it will be called from
-                    // DispatcherServer class (at while)
-                    public void messageReceived(String message) {
-                        processMessage(message);
+                        @Override
+                        // this method declared in the interface from DispatcherServer
+                        // class is implemented here
+                        // this method is actually a callback method, because it
+                        // will run every time when it will be called from
+                        // DispatcherServer class (at while)
+                        public void messageReceived(String message) {
+                            processMessage(message);
+                        }
+                    }, new SocketMainServer.OnConnectionChangeListener() {
+                        @Override
+                        public void connected() {
+                            mBroadcastServer.stopServer();
+                        }
+
+                        @Override
+                        public void disconnected() {
+                            mBroadcastServer.start();
+                        }
                     }
-                });
-                mServer.start();
-
+                    );
+                    mServer.start();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
             }
         });
 
@@ -116,7 +115,6 @@ public class ServerBoard extends JFrame {
         panelFields.add(startServer);
 
         panelFields2.add(message);
-        panelFields2.add(sendButton);
 
         getContentPane().add(panelFields);
         getContentPane().add(panelFields2);
@@ -136,14 +134,14 @@ public class ServerBoard extends JFrame {
             String subSY = message.substring(message.indexOf("y") + 1, message.length());
             double moveY = Double.parseDouble(subSY);
             r.mouseMove(getXOffset(moveX), getYOffset(moveY));
-        } else if (message.contains("clck_d_"))  {
-            if(message.contains("lc")){
+        } else if (message.contains("clck_d_")) {
+            if (message.contains("lc")) {
                 r.mousePress(InputEvent.BUTTON1_MASK);
             } else {
                 r.mousePress(InputEvent.BUTTON2_MASK);
             }
-        } else if (message.contains("clck_u_"))  {
-            if(message.contains("lc")){
+        } else if (message.contains("clck_u_")) {
+            if (message.contains("lc")) {
                 r.mouseRelease(InputEvent.BUTTON1_MASK);
             } else {
                 r.mouseRelease(InputEvent.BUTTON2_MASK);
